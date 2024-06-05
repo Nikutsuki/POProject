@@ -97,6 +97,11 @@ void Game::pollEvents()
 	}
 }
 
+void Game::spawnEnemies()
+{
+
+}
+
 void Game::renderGUI(Player* player)
 {
 	this->window->draw(gamegui.OuterOuter);

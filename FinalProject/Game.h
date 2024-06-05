@@ -63,6 +63,7 @@ public:
 	void update();
 	void render();
 	void pollEvents();
+	void spawnEnemies();
 
 	//Accessors
 
