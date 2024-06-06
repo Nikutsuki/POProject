@@ -1,3 +1,5 @@
+#pragma once
+
 #ifndef MAZE_H
 #define MAZE_H
 
@@ -41,6 +43,8 @@ private:
 
     std::random_device rd;
     std::mt19937 gen;
+
+    sf::Texture wall_texture, key_texture, potion_texture;
 
     // Directions for carving passages
     const int dx[4] = { 1, -1, 0, 0 };

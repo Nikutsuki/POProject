@@ -9,6 +9,9 @@ std::queue<int>QQ;
 Maze::Maze(int width, int height)
 	: width(width), height(height), grid(height, std::vector<Cell>(width, Cell::Wall)), gen(rd()), unlocked(false)
 {
+	wall_texture.loadFromFile("wall.png");
+	key_texture.loadFromFile("key.png");
+	potion_texture.loadFromFile("potion.png");
 }
 
 Cell Maze::getCell(int y, int x) const
@@ -224,10 +227,10 @@ void Maze::draw(sf::RenderWindow& window, float blockSize) const
 			switch (grid[y][x])
 			{
 			case Cell::Wall:
-				block.setFillColor(sf::Color::Green);
+				block.setTexture(&wall_texture);
 				break;
 			case Cell::Passage:
-				block.setFillColor(sf::Color::White);
+				block.setFillColor(sf::Color::Black);
 				break;
 			case Cell::End:
 				block.setFillColor(sf::Color::Cyan);
@@ -236,10 +239,10 @@ void Maze::draw(sf::RenderWindow& window, float blockSize) const
 				block.setFillColor(sf::Color::Yellow);
 				break;
 			case Cell::Key:
-				block.setFillColor(sf::Color::Black);
+				block.setTexture(&key_texture);
 				break;
 			case Cell::Elixer:
-				block.setFillColor(sf::Color::Magenta);
+				block.setTexture(&potion_texture);
 				break;
 			case Cell::SpikeFloor:
 				for (int i = 0; i < trapcount; i++)

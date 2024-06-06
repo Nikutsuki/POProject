@@ -17,12 +17,13 @@ private:
 	
 	//Private functions of enemy
 public:
-	RectangleShape body;
+	sf::RectangleShape body;
 	float health;
 	//Constructors/Destructors
 	Enemy();
 	~Enemy();
 
+	void Render(sf::RenderWindow& window);
 	//Public methods
 
 };

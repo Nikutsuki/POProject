@@ -10,6 +10,10 @@
 #include <SFML/Audio.hpp>
 #include <SFML/Network.hpp>
 #include <iostream>
+#include <vector>
+#include <string>
+#include <random>
+
 #include "Enemy.h"
 #include "Maze.h"
 #include "Player.h"
@@ -48,7 +52,7 @@ public:
 	GUI gamegui;
 	RenderWindow* window;
 	Maze* maze;
-	Enemy* enemyList;
+	std::vector<Enemy*> enemy_list;
 	Player* player;
 	//Constructors and destructors
 
@@ -63,7 +67,6 @@ public:
 	void update();
 	void render();
 	void pollEvents();
-	void spawnEnemies();
 
 	//Accessors
 

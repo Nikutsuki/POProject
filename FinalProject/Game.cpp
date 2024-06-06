@@ -1,10 +1,4 @@
 #include "Game.h"
-#include <random>
-#include "Maze.h"
-#include <vector>
-#include <string>
-
-
 
 //Private functions
 void Game::initializeVariables()
@@ -26,14 +20,26 @@ void Game::initializeWindow()
 
 void Game::initializeEnemies()
 {
-	/*random_device device;
-	uniform_int_distribution<> randomizer(1, 6);
-	int enemyCount = randomizer(device);
-	*/
-	enemyList = new Enemy[1];
-	for (int i = 0; i < 1; i++)
+	std::random_device device;
+	std::mt19937 generator(device());
+	std::uniform_int_distribution<> dist(1, 20);
+	
+	bool spawned = false;
+	float min_distance_to_player = 500.f;
+	while (!spawned)
 	{
-		enemyList[i] = Enemy();
+		int x = dist(generator);
+		int y = dist(generator);
+		float distance = sqrt(pow(x * 50 - player->body.getPosition().x, 2) + pow(y * 50 - player->body.getPosition().y, 2));
+		if (distance < min_distance_to_player)
+			continue;
+		if (maze->getCell(y, x) == Cell::Passage)
+		{
+			Enemy* enemy = new Enemy();
+			enemy->body.setPosition(Vector2f((x) * 50.0f + 12.5f, (y) * 50.0f + 12.5f));
+			this->enemy_list.push_back(enemy);
+			spawned = true;
+		}
 	}
 }
 
@@ -92,14 +98,7 @@ void Game::pollEvents()
 				this->window->close();
 			break;
 		}
-
-
 	}
-}
-
-void Game::spawnEnemies()
-{
-
 }
 
 void Game::renderGUI(Player* player)
@@ -135,8 +134,11 @@ void Game::render()
 	//this->window->draw(this->enemyList[0].body);
 	this->player->render(*this->window);
 	this->renderGUI(player);
+	for (Enemy* enemy : enemy_list)
+	{
+		enemy->Render(*this->window);
+	}
 	this->window->display();
-
 }
 
 //Accessors
