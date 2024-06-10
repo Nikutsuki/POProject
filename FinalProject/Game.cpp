@@ -3,9 +3,10 @@
 void Game::initializeVariables()
 {
 	this->window = nullptr;
-	this->maze = new Maze(21, 21);
-	this->maze->generateMaze();
+	this->maze = new Maze(21, 21, nullptr);
 	this->player = new Player(25.0f, 1.0f, *this->maze);
+	this->maze->player = this->player;
+	this->maze->generateMaze();
 	this->font.loadFromFile("ARIAL.ttf");
 	this->initializeGUI();
 }
@@ -18,31 +19,7 @@ void Game::initializeWindow()
 	this->window->setFramerateLimit(240);
 }
 
-void Game::initializeEnemies()
-{
-	this->enemy_list.clear();
-	std::random_device device;
-	std::mt19937 generator(device());
-	std::uniform_int_distribution<> dist(1, 20);
-	
-	bool spawned = false;
-	float min_distance_to_player = 200.f;
-	while (!spawned)
-	{
-		int x = dist(generator);
-		int y = dist(generator);
-		float distance = sqrt(pow(x * 50 - player->body.getPosition().x, 2) + pow(y * 50 - player->body.getPosition().y, 2));
-		if (distance < min_distance_to_player)
-			continue;
-		if (maze->getCell(y, x) == Cell::Passage)
-		{
-			Enemy* enemy = new Enemy();
-			enemy->body.setPosition(Vector2f((x) * 50.0f, (y) * 50.0f));
-			this->enemy_list.push_back(enemy);
-			spawned = true;
-		}
-	}
-}
+void Game::initializeEnemies() {}
 
 void Game::initializeMaze() {}
 
@@ -120,22 +97,11 @@ void Game::update()
 {
 	this->pollEvents();
 	this->player->handleInput(window, maze, sf::Mouse::getPosition(*window));
-	this->maze->handleInput(player->body);
+	this->maze->handleInput(this->player);
 
 	if (this->player->showdamagefilter && this->player->damageClock.getElapsedTime() >= sf::seconds(0.15))
 	{
 		this->player->showdamagefilter = false;
-	}
-
-	for (Enemy* enemy : enemy_list)
-	{
-		enemy->is_in_fov(player->body.getPosition());
-		if (enemy->follow_player)
-		{
-			std::cout << "Player is in FOV" << std::endl;
-			player->damagePlayer(10, this->maze);
-		}
-		enemy->Update(maze);
 	}
 }
 
@@ -144,10 +110,6 @@ void Game::render()
 	this->window->clear(sf::Color::Transparent);
 	this->maze->draw(*this->window, 50.0f);
 	this->player->render(*this->window);
-	for (Enemy* enemy : enemy_list)
-	{
-		enemy->Render(*this->window);
-	}
 	this->renderGUI(player);
 	this->window->display();
 }

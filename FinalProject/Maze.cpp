@@ -1,8 +1,11 @@
 #include "Maze.h"
 
+#include "Player.h"
+#include "Enemy.h"
+
 std::vector<int> v[100000];
 
-Maze::Maze(int width, int height) : width(width), height(height), grid(height, std::vector<Cell>(width, Cell::Wall)), gen(rd()), unlocked(false), enemynumber(0)
+Maze::Maze(int width, int height, Player* player) : width(width), height(height), grid(height, std::vector<Cell>(width, Cell::Wall)), gen(rd()), unlocked(false), enemynumber(0), player(player)
 {
 	wall_texture.loadFromFile("wall.png");
 	key_texture.loadFromFile("key2.png");
@@ -198,6 +201,35 @@ void Maze::generateMaze()
 		}
 	}
 
+	this->enemy_list.clear();
+	std::random_device device;
+	std::mt19937 generator(device());
+	std::uniform_int_distribution<> dist(1, 20);
+
+	std::uniform_int_distribution<> enemycount(1, 4);
+
+	bool spawned = false;
+	float min_distance_to_player = 200.f;
+	for (int i = 0; i < enemycount(generator); i++)
+	{
+		spawned = false;
+		while (!spawned)
+		{
+			int x = dist(generator);
+			int y = dist(generator);
+			float distance = sqrt(pow(x * 50 - player->body.getPosition().x, 2) + pow(y * 50 - player->body.getPosition().y, 2));
+			if (distance < min_distance_to_player)
+				continue;
+			if (this->getCell(y, x) == Cell::Passage)
+			{
+				Enemy* enemy = new Enemy();
+				enemy->body.setPosition(Vector2f((x) * 50.0f, (y) * 50.0f));
+				this->enemy_list.push_back(enemy);
+				spawned = true;
+			}
+		}
+	}
+
 	grid[19][19] = Cell::End;
 	grid[18][19] = Cell::Door;
 	grid[17][19] = Cell::Passage;
@@ -205,7 +237,7 @@ void Maze::generateMaze()
 	grid[19][18] = Cell::Door;
 	grid[19][17] = Cell::Passage;
 
-
+	complete();
 }
 
 /*void showpath(int x, int y) {
@@ -305,6 +337,11 @@ void Maze::draw(sf::RenderWindow& window, float blockSize) const
 		}
 	}
 
+	for (Enemy* enemy : enemy_list)
+	{
+		enemy->Render(window);
+	}
+
 	/*while (!QQ.empty()) {
 		int p = QQ.front();
 		QQ.pop();
@@ -318,13 +355,23 @@ void Maze::draw(sf::RenderWindow& window, float blockSize) const
 	}*/
 }
 
-void Maze::handleInput(sf::RectangleShape& body)
+void Maze::handleInput(Player* player)
 {
 	/*sf::Vector2f position = body.getPosition();
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::M)) {
 
 		showpath(floor(position.x * 20 / 100), floor(position.y * 20 / 100));
 	}*/
+	for (Enemy* enemy : enemy_list)
+	{
+		enemy->is_in_fov(player->body.getPosition());
+		if (enemy->follow_player)
+		{
+			std::cout << "Player is in FOV" << std::endl;
+			player->damagePlayer(10, this);
+		}
+		enemy->Update(this);
+	}
 }
 
 const std::vector<Room>& Maze::getRooms() const
@@ -336,4 +383,90 @@ float Maze::Cell_SDF(sf::Vector2f p, sf::Vector2f t, float size)
 {
 	sf::Vector2f d = sf::Vector2f(std::abs((p.x + size / 2) - (t.x + 25.f)), std::abs((p.y + size/2) - (t.y + 25.f))) - sf::Vector2f(25.f + size/2, 25.f + size/2);
 	return length(max(d, 0.0f)) + min(std::max(d.x, d.y), 0.0f);
+}
+
+void Maze::complete() {
+	key_found = false;
+	for (int i = 0; i < 7000; i++) {
+		vp[i].clear();
+	}
+	for (int j = 1; j < 20; j++) {
+		for (int i = 1; i < 20; i++) {
+			if (this->getCell(j, i) == Cell::Key) {
+				key_position = j * 20 + i;
+			}
+			if (this->getCell(j, i) != Cell::Wall) {
+				if (j == 19) {
+					if (this->getCell(j - 1, i) != Cell::Wall) {
+						vp[(j - 1) * 20 + i].push_back(j * 20 + i);
+					}
+					if (i != 19) {
+						if (this->getCell(j, i + 1) != Cell::Wall) {
+							vp[(j) * 20 + i + 1].push_back(j * 20 + i);
+						}
+					}
+					if (this->getCell(j, i - 1) != Cell::Wall) {
+						vp[(j) * 20 + i - 1].push_back(j * 20 + i);
+					}
+				}
+				else {
+					if (i == 19) {
+						if (this->getCell(j + 1, i) != Cell::Wall) {
+							vp[(j + 1) * 20 + i].push_back(j * 20 + i);
+						}
+						if (this->getCell(j - 1, i) != Cell::Wall) {
+							vp[(j - 1) * 20 + i].push_back(j * 20 + i);
+						}
+						if (this->getCell(j, i - 1) != Cell::Wall) {
+							vp[(j) * 20 + i - 1].push_back(j * 20 + i);
+						}
+					}
+					else {
+						if (this->getCell(j + 1, i) != Cell::Wall) {
+							vp[(j + 1) * 20 + i].push_back(j * 20 + i);
+						}
+						if (this->getCell(j - 1, i) != Cell::Wall) {
+							vp[(j - 1) * 20 + i].push_back(j * 20 + i);
+						}
+						if (this->getCell(j, i + 1) != Cell::Wall) {
+							vp[(j) * 20 + i + 1].push_back(j * 20 + i);
+						}
+						if (this->getCell(j, i - 1) != Cell::Wall) {
+							vp[(j) * 20 + i - 1].push_back(j * 20 + i);
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+std::queue<int> Maze::show_path(int x1, int y1, int x2, int y2, std::vector<int> v[10000]) {
+	bool vis[100000];
+	for (int i = 0; i < 420; i++) {
+		vis[i] = false;
+	}
+	int edge = y1 * 20 + x1;
+	int exit = y2 * 20 + x2;
+	std::queue<std::pair<int, std::queue<int> > > q;
+	std::queue<int> k, qq;
+	q.push({ edge,k });
+	while (!q.empty()) {
+		int w = q.front().first;
+		std::queue<int> Q = q.front().second;
+		Q.push(w);
+		q.pop();
+		for (int i = 0; i < v[w].size(); i++) {
+			if (!vis[v[w][i]]) {
+				vis[v[w][i]] = true;
+				q.push({ v[w][i], Q });
+				if (v[w][i] == exit) {
+					qq = Q;
+					goto end;
+				}
+			}
+		}
+	}
+end:
+	return qq;
 }

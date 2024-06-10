@@ -41,7 +41,6 @@ public:
 	GUI gamegui;
 	RenderWindow* window;
 	Maze* maze;
-	std::vector<Enemy*> enemy_list;
 	Player* player;
 	Font font;
 

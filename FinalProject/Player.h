@@ -22,14 +22,15 @@ public:
     void healPlayer();
     void tookDamage(bool damage);
     sf::RectangleShape body;
-    const Maze& maze;
+    Maze& maze;
     sf::RectangleShape newShape;
     sf::RectangleShape Filter;
     bool immunityCheck;
     bool showdamagefilter;
     sf::Clock immunityClock;
     sf::Clock damageClock;
-    Player(float size, float speed, const Maze& maze);
+    Player(float size, float speed, Maze& maze);
     void handleInput(sf::RenderWindow* window, Maze* maze, sf::Vector2i mousePosition);
     void render(sf::RenderWindow& window);
+    void showpath(int x, int y);
 };

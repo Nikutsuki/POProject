@@ -8,6 +8,9 @@
 
 #include "vector_utils.h"
 
+class Player;
+class Enemy;
+
 enum class Cell
 {
     Wall,
@@ -53,25 +56,32 @@ private:
     void generatePassages(int x, int y);
 
 public:
+    std::vector<int> vp[10000];
     std::vector<Spike> spikelist;
+    std::vector<Enemy*> enemy_list;
+	Player* player;
     int trapcount;
     int keypositionx;
     int keypositiony;
+    int key_position;
     bool unlocked;
+    bool key_found = false;
     //bool vis[100000];
     //std::vector<int> v[100000];
     //void showpath(int x, int y);
     std::vector<std::vector<Cell>> grid;
     int enemynumber;
     //static std::queue<int> QQ;
-    Maze(int width, int height);
+    void complete();
+    Maze(int width, int height, Player* player);
     Cell getCell(int x, int y) const;
     void generateMaze();
-    void handleInput(sf::RectangleShape& body);
+    void handleInput(Player* player);
     void draw(sf::RenderWindow& window, float blockSize) const;
     const std::vector<Room>& getRooms() const;
     int getWidth() const { return width; }
     int getHeight() const { return height; }
 
     static float Cell_SDF(sf::Vector2f p, sf::Vector2f t, float size);
+    static std::queue<int> show_path(int x1, int y1, int x2, int y2, std::vector<int> v[10000]);
 };

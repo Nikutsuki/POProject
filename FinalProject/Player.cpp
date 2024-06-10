@@ -3,11 +3,8 @@
 bool t = true;
 bool vis[10000];
 std::queue<int> QQ, QQ2;
-std::vector<int> vp[10000];
 float aim_lenght = 12.5;
 bool left_pressed = false;
-bool key_found = false;
-int key_position;
 bool show = false;
 float dx, dy, r, vx, vy;
 float nx = 0, ny = 0;
@@ -60,71 +57,15 @@ bullet move_bullet(bullet bull, Maze& maze) {
     return b;
 }
 
-void complete(Maze& maze) {
-    key_found = false;
-    for (int i = 0; i < 7000; i++) {
-        vp[i].clear();
-    }
-    for (int j = 1; j < 20; j++) {
-        for (int i = 1; i < 20; i++) {
-            if (maze.getCell(j, i) == Cell::Key) {
-                key_position = j * 20 + i;
-            }
-            if (maze.getCell(j, i) != Cell::Wall) {
-                if (j == 19) {
-                    if (maze.getCell(j - 1, i) != Cell::Wall) {
-                        vp[(j - 1) * 20 + i].push_back(j * 20 + i);
-                    }
-                    if (i != 19) {
-                        if (maze.getCell(j, i + 1) != Cell::Wall) {
-                            vp[(j) * 20 + i + 1].push_back(j * 20 + i);
-                        }
-                    }
-                    if (maze.getCell(j, i - 1) != Cell::Wall) {
-                        vp[(j) * 20 + i - 1].push_back(j * 20 + i);
-                    }
-                }
-                else {
-                    if (i == 19) {
-                        if (maze.getCell(j + 1, i) != Cell::Wall) {
-                            vp[(j + 1) * 20 + i].push_back(j * 20 + i);
-                        }
-                        if (maze.getCell(j - 1, i) != Cell::Wall) {
-                            vp[(j - 1) * 20 + i].push_back(j * 20 + i);
-                        }
-                        if (maze.getCell(j, i - 1) != Cell::Wall) {
-                            vp[(j) * 20 + i - 1].push_back(j * 20 + i);
-                        }
-                    }
-                    else {
-                        if (maze.getCell(j + 1, i) != Cell::Wall) {
-                            vp[(j + 1) * 20 + i].push_back(j * 20 + i);
-                        }
-                        if (maze.getCell(j - 1, i) != Cell::Wall) {
-                            vp[(j - 1) * 20 + i].push_back(j * 20 + i);
-                        }
-                        if (maze.getCell(j, i + 1) != Cell::Wall) {
-                            vp[(j) * 20 + i + 1].push_back(j * 20 + i);
-                        }
-                        if (maze.getCell(j, i - 1) != Cell::Wall) {
-                            vp[(j) * 20 + i - 1].push_back(j * 20 + i);
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-void showpath(int x, int y) {
+void Player::showpath(int x, int y) {
     QQ = QQ2;
     int edge = y * 20 + x;
     int exit;
-    if (key_found) {
+    if (this->maze.key_found) {
         exit = 19 * 20 + 19;
     }
     else {
-        exit = key_position;
+        exit = this->maze.key_position;
     }
     std::queue<std::pair<int, std::queue<int> > > q;
     std::queue<int> k;
@@ -134,11 +75,11 @@ void showpath(int x, int y) {
         std::queue<int> Q = q.front().second;
         Q.push(w);
         q.pop();
-        for (int i = 0; i < vp[w].size(); i++) {
-            if (!vis[vp[w][i]]) {
-                vis[vp[w][i]] = true;
-                q.push({ vp[w][i], Q });
-                if (vp[w][i] == exit) {
+        for (int i = 0; i < this->maze.vp[w].size(); i++) {
+            if (!vis[this->maze.vp[w][i]]) {
+                vis[this->maze.vp[w][i]] = true;
+                q.push({ this->maze.vp[w][i], Q });
+                if (this->maze.vp[w][i] == exit) {
                     QQ = Q;
                     for (int j = 0; j < 1000; j++) {
                         vis[j] = false;
@@ -154,7 +95,7 @@ end:
     }
 }
 
-Player::Player(float size, float speed, const Maze& maze) : body(sf::Vector2f(size, size)), speed(speed), maze(maze), immunityCheck(false), health(100), score(0), level(0)
+Player::Player(float size, float speed, Maze& maze) : body(sf::Vector2f(size, size)), speed(speed), maze(maze), immunityCheck(false), health(100), score(0), level(0)
 {
     this->texture.loadFromFile("player.png");
     this->body.setTexture(&texture);
@@ -186,12 +127,13 @@ bool Player::canMove(float x, float y, Maze* maze1)
         this->level = +1;
         body.setPosition(51.0f, 51.0f);
         delete maze1;
-        maze1 = new Maze(21, 21);
+        maze1 = new Maze(21, 21, this);
         maze1->generateMaze();
     }
     else if (maze.getCell(cellY, cellX) == Cell::Key) {
         maze1->unlocked = true;
         maze1->grid[cellY][cellX] = Cell::Passage;
+		maze.key_found = true;
     }
     else if (maze.getCell(cellY, cellX) == Cell::Elixer)
     {
@@ -234,12 +176,13 @@ bool Player::canMove(float x, float y, Maze* maze1)
         this->level = +1;
         body.setPosition(51.0f, 51.0f);
         delete maze1;
-        maze1 = new Maze(21, 21);
+        maze1 = new Maze(21, 21, this);
         maze1->generateMaze();
     }
     else if (maze.getCell(cellY2, cellX) == Cell::Key) {
         maze1->unlocked = true;
         maze1->grid[cellY2][cellX] = Cell::Passage;
+        maze.key_found = true;
     }
     else if (maze.getCell(cellY2, cellX) == Cell::Elixer)
     {
@@ -282,12 +225,13 @@ bool Player::canMove(float x, float y, Maze* maze1)
         this->level = +1;
         body.setPosition(51.0f, 51.0f);
         delete maze1;
-        maze1 = new Maze(21, 21);
+        maze1 = new Maze(21, 21, this);
         maze1->generateMaze();
     }
     else if (maze.getCell(cellY2, cellX2) == Cell::Key) {
         maze1->unlocked = true;
         maze1->grid[cellY2][cellX2] = Cell::Passage;
+		maze.key_found = true;
     }
     else if (maze.getCell(cellY2, cellX2) == Cell::Elixer)
     {
@@ -330,12 +274,13 @@ bool Player::canMove(float x, float y, Maze* maze1)
         this->level = +1;
         body.setPosition(51.0f, 51.0f);
         delete maze1;
-        maze1 = new Maze(21, 21);
+        maze1 = new Maze(21, 21, this);
         maze1->generateMaze();
     }
     else if (maze.getCell(cellY, cellX2) == Cell::Key) {
         maze1->unlocked = true;
         maze1->grid[cellY][cellX2] = Cell::Passage;
+		maze.key_found = true;
     }
     else if (maze.getCell(cellY, cellX2) == Cell::Elixer)
     {
@@ -498,10 +443,6 @@ void showaim(sf::Vector2f pos1, sf::Vector2i pos2) {
 
 void Player::handleInput(sf::RenderWindow* window, Maze* maze, sf::Vector2i mousePosition)
 {
-    if (t) {
-        complete(*maze);
-        t = false;
-    }
 	sf::Vector2f position = body.getPosition();
 	float speed = 1.0f;
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::W) && canMove(0, -speed, maze)) {
