@@ -1,31 +1,35 @@
 #pragma once
 
-#ifndef PLAYER_H
-#define PLAYER_H
-
 #include <SFML/Graphics.hpp>
+#include <cmath>
+#include <iostream>
+#include <vector>
+#include <queue>
+
 #include "Maze.h"
 
 class Player {
 private:
-    
-    float speed;
-    
-
     bool canMove(float x, float y, Maze* maze1);
-
+    sf::Texture texture;
 public:
     int health;
-    void damagePlayer(int damage);
+    int score;
+    int level;
+    float speed;
+
+    void damagePlayer(int damage, Maze* maze);
     void healPlayer();
+    void tookDamage(bool damage);
     sf::RectangleShape body;
     const Maze& maze;
     sf::RectangleShape newShape;
+    sf::RectangleShape Filter;
     bool immunityCheck;
+    bool showdamagefilter;
     sf::Clock immunityClock;
+    sf::Clock damageClock;
     Player(float size, float speed, const Maze& maze);
-    void handleInput(sf::RenderWindow* window, Maze* maze);
+    void handleInput(sf::RenderWindow* window, Maze* maze, sf::Vector2i mousePosition);
     void render(sf::RenderWindow& window);
 };
-
-#endif // PLAYER_H

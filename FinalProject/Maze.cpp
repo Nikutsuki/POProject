@@ -1,17 +1,17 @@
 #include "Maze.h"
-#include <algorithm> // For std::shuffle
-#include "Player.h"
-#include<vector>
-#include<queue>
+
 std::vector<int> v[100000];
-bool vis[100000];
-std::queue<int>QQ;
-Maze::Maze(int width, int height)
-	: width(width), height(height), grid(height, std::vector<Cell>(width, Cell::Wall)), gen(rd()), unlocked(false)
+
+Maze::Maze(int width, int height) : width(width), height(height), grid(height, std::vector<Cell>(width, Cell::Wall)), gen(rd()), unlocked(false), enemynumber(0)
 {
 	wall_texture.loadFromFile("wall.png");
-	key_texture.loadFromFile("key.png");
+	key_texture.loadFromFile("key2.png");
 	potion_texture.loadFromFile("potion.png");
+	spike_texture.loadFromFile("trap.png");
+	trophy_texture.loadFromFile("trophy.png");
+	portal_texture.loadFromFile("portal.png");
+	door_texture.loadFromFile("keyhole.png");
+	floor_texture.loadFromFile("floor.png");
 }
 
 Cell Maze::getCell(int y, int x) const
@@ -44,9 +44,8 @@ void Maze::generatePassages(int x, int y)
 
 void Maze::generateMaze()
 {
-	generatePassages(1, 1); // Start in the middle of a grid cell to avoid borders
+	generatePassages(1, 1);
 
-	// Create rooms
 	std::uniform_int_distribution<> roomWidthDist(3, 5);
 	std::uniform_int_distribution<> roomHeightDist(3, 5);
 	std::uniform_int_distribution<> roomXDist(1, width - 6);
@@ -122,7 +121,37 @@ void Maze::generateMaze()
 		}
 	}
 
+	std::uniform_int_distribution<> trophyCounter(1, 3);
+	std::uniform_int_distribution<> heightrand2(0, rooms[keyroom].height);
+	std::uniform_int_distribution<> widthrand2(0, rooms[keyroom].width);
 
+	int trophycount = trophyCounter(gen);
+
+	for (int i = 0; i < trophycount; i++)
+	{
+		int roomnr = keyroompicker(gen);
+
+		std::uniform_int_distribution<> posixer(0, rooms[roomnr].width);
+		std::uniform_int_distribution<> posiyer(0, rooms[roomnr].height);
+		int posix = posixer(gen);
+		int posiy = posiyer(gen);
+
+		if (grid[posiy + rooms[roomnr].y][posix + rooms[roomnr].x] == Cell::Key)
+		{
+			if (posiy = rooms[roomnr].y)
+			{
+				grid[posiy + rooms[roomnr].y - 1][posix + rooms[roomnr].x] = Cell::Trophy;
+			}
+			else
+			{
+				grid[posiy + rooms[roomnr].y + 1][posix + rooms[roomnr].x] = Cell::Trophy;
+			}
+		}
+		else
+		{
+			grid[posiy + rooms[keyroom].y][posix + rooms[keyroom].x] = Cell::Trophy;
+		}
+	}
 
 	std::uniform_int_distribution<> heightrand(0, rooms[keyroom].height);
 	std::uniform_int_distribution<> widthrand(0, rooms[keyroom].width);
@@ -144,7 +173,7 @@ void Maze::generateMaze()
 	int trapamount = traprand(gen);
 	trapcount = trapamount;
 	Cell whichCell = Cell::Wall;
-	spikelist = new Spike[trapamount];
+	spikelist = std::vector<Spike>(trapamount);
 
 	for (int i = 0; i < trapamount; i++)
 	{
@@ -222,27 +251,29 @@ void Maze::draw(sf::RenderWindow& window, float blockSize) const
 	{
 		for (int x = 0; x < width; ++x)
 		{
-			sf::RectangleShape block(sf::Vector2f(blockSize, blockSize));
+			sf::Sprite block;
+			block.setScale(0.1f, 0.1f);
+			//sf::RectangleShape block(sf::Vector2f(blockSize, blockSize));
 			block.setPosition(x * blockSize, y * blockSize);
 			switch (grid[y][x])
 			{
 			case Cell::Wall:
-				block.setTexture(&wall_texture);
+				block.setTexture(wall_texture);
 				break;
 			case Cell::Passage:
-				block.setFillColor(sf::Color::Black);
+				block.setTexture(floor_texture);
 				break;
 			case Cell::End:
-				block.setFillColor(sf::Color::Cyan);
+				block.setTexture(portal_texture);
 				break;
 			case Cell::Door:
-				block.setFillColor(sf::Color::Yellow);
+				block.setTexture(door_texture);
 				break;
 			case Cell::Key:
-				block.setTexture(&key_texture);
+				block.setTexture(key_texture);
 				break;
 			case Cell::Elixer:
-				block.setTexture(&potion_texture);
+				block.setTexture(potion_texture);
 				break;
 			case Cell::SpikeFloor:
 				for (int i = 0; i < trapcount; i++)
@@ -251,21 +282,26 @@ void Maze::draw(sf::RenderWindow& window, float blockSize) const
 					{
 						if (spikelist[i].discovered == true)
 						{
-							block.setFillColor(sf::Color::Red);
+							block.setTexture(spike_texture);
 						}
 						else
 						{
-							block.setFillColor(sf::Color(255, 240, 240));
+							block.setTexture(floor_texture);
 						}
 					}
 				}
+				break;
+			case Cell::Trophy:
+				block.setTexture(trophy_texture);
 				break;
 			default:
 				// Handle any other cases here
 				break;
 			}
 
-			window.draw(block);
+			sf::RenderStates states;
+			states.blendMode = sf::BlendAlpha;
+			window.draw(block, states);
 		}
 	}
 
@@ -294,4 +330,10 @@ void Maze::handleInput(sf::RectangleShape& body)
 const std::vector<Room>& Maze::getRooms() const
 {
 	return rooms;
+}
+
+float Maze::Cell_SDF(sf::Vector2f p, sf::Vector2f t, float size)
+{
+	sf::Vector2f d = sf::Vector2f(std::abs((p.x + size / 2) - (t.x + 25.f)), std::abs((p.y + size/2) - (t.y + 25.f))) - sf::Vector2f(25.f + size/2, 25.f + size/2);
+	return length(max(d, 0.0f)) + min(std::max(d.x, d.y), 0.0f);
 }

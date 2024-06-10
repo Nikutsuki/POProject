@@ -1,9 +1,5 @@
 #pragma once
 
-/*
-	Holds all the information of the game
-*/
-
 #include <SFML/Graphics.hpp>
 #include <SFML/System.hpp>
 #include <SFML/Window.hpp>
@@ -26,51 +22,38 @@ struct GUI
 	sf::RectangleShape Outer;
 	sf::RectangleShape Inner;
 	sf::Text Score;
+	sf::Text Health;
+	sf::Text Level;
 };
 
 class Game
 {
 private: 
-	//Variables of the game
-
-	
 	Event event;
 	VideoMode videomode;
-	
-	
-
-	//Private functions
 
 	void initializeVariables();
 	void initializeWindow();
 	void initializeEnemies();
 	void initializeMaze();
 	void initializeGUI();
-
 public:
-	//public variables
 	GUI gamegui;
 	RenderWindow* window;
 	Maze* maze;
 	std::vector<Enemy*> enemy_list;
 	Player* player;
-	//Constructors and destructors
+	Font font;
 
 	Game();
 	~Game();
-	
 
-	//Methods
-
-	void renderObjects();
+	void renderObjects() {};
 	void renderGUI(Player* player);
 	void update();
 	void render();
 	void pollEvents();
 
-	//Accessors
-
 	const bool running() const;
-
 };
 
