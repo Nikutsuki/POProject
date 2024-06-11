@@ -129,8 +129,10 @@ end:
 
 Player::Player(float size, float speed, Maze& maze) : body(sf::Vector2f(size, size)), speed(speed), maze(maze), immunityCheck(false), health(100), score(0), level(0)
 {
-    this->texture.loadFromFile("player.png");
+    this->texture.loadFromFile("player2.png");
+	this->bullet_texture.loadFromFile("bullet.png");
     this->body.setTexture(&texture);
+	this->step_texture.loadFromFile("step.png");
     body.setPosition(51.0f, 51.0f); // Starting position
 }
 
@@ -346,7 +348,6 @@ bool Player::canMove(float x, float y, Maze* maze1)
         maze1->grid[cellY][cellX2] = Cell::Passage;
     }
 
-
     if (maze.getCell(cellY, cellX) != Cell::Wall && maze.getCell(cellY2, cellX2) != Cell::Wall && maze.getCell(cellY, cellX2) != Cell::Wall && maze.getCell(cellY2, cellX) != Cell::Wall)
     {
         if (maze.getCell(cellY, cellX) == Cell::Door || maze.getCell(cellY2, cellX2) == Cell::Door || maze.getCell(cellY, cellX2) == Cell::Door || maze.getCell(cellY2, cellX) == Cell::Door)
@@ -536,8 +537,8 @@ void Player::handleInput(sf::RenderWindow* window, Maze* maze, sf::Vector2i mous
 void Player::render(sf::RenderWindow& window)
 {
     sf::RectangleShape block;
-    block.setSize(sf::Vector2f(10.0f, 10.0f));
-    block.setFillColor(sf::Color::Cyan);
+    block.setSize(sf::Vector2f(25.0f, 25.0f));
+	block.setTexture(&step_texture);
     if (show) {
         QQ2 = QQ;
         while (!QQ2.empty()) {
@@ -552,27 +553,23 @@ void Player::render(sf::RenderWindow& window)
     sf::RectangleShape block2(sf::Vector2f(3.0f, 2 * aim_lenght));
     block2.setFillColor(sf::Color::White);
 
-    // Ustaw pozycjê prostok¹ta
+    // Ustaw pozycjï¿½ prostokï¿½ta
     block2.setPosition(sf::Vector2f(aimm.x + 12.5, aimm.y + 12.5));
 
-    // K¹t obrotu w stopniach
+    // Kï¿½t obrotu w stopniach
     float rotationAngle = (angle) * 180 / 3.14;
     block2.setRotation(rotationAngle);
     window.draw(block2);
 
     sf::RectangleShape block3(sf::Vector2f(bullet_size, bullet_size));
-    block3.setFillColor(sf::Color::Magenta);
-    //std::queue<bullet> b = bullets;
-   // std::vector<bullet> b = bullets;
-    for (int i = 0; i < bullets.size(); i++) {
-        block3.setPosition(sf::Vector2f(bullets[i].x, bullets[i].y));
-        window.draw(block3);
-    }
-   /* while (!b.empty()) {
+	block3.setTexture(&bullet_texture);
+    block3.setScale(2.f, 2.f);
+    std::queue<bullet> b = bullets;
+    while (!b.empty()) {
         block3.setPosition(sf::Vector2f(b.front().x, b.front().y));
         b.pop();
         window.draw(block3);
-    }*/
+    }
     if (showdamagefilter)
     {
         window.draw(Filter);
