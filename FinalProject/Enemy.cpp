@@ -118,6 +118,63 @@ void Enemy::Update(Maze* maze)
 	{
 		fov.setFillColor(sf::Color(0, 255, 0, 100));
 
+		explore_maze(maze);
+
+		if (change_path_clock.getElapsedTime().asSeconds() >= target_time)
+		{
+			change_path(maze);
+		}
+		int x1 = floor(this->body.getPosition().x * 20 / 1000);
+		int y1 = floor(this->body.getPosition().y * 20 / 1000);
+		if (x1 == target_pos.x && y1 == target_pos.y)
+		{
+			change_path(maze);
+		}
+	}
+}
+
+void Enemy::change_path(Maze* maze)
+{
+	std::uniform_int_distribution<> change_path_time(1, 10);
+	std::uniform_int_distribution<> pos(0, maze->floors.size());
+	std::mt19937 gen(std::time(0)+reinterpret_cast<int>(this));
+	int time = change_path_time(gen);
+	int index = pos(gen);
+	target_pos = maze->floors[index];
+
+	std::cout << "Last time: " << target_time << ' ' << time << '\n' << target_pos.x << ' ' << target_pos.y << '\n';
+ 	target_time = time;
+	change_path_clock.restart();
+}
+
+void Enemy::explore_maze(Maze* maze)
+{
+	int x1 = floor(this->body.getPosition().x * 20 / 1000);
+	int y1 = floor(this->body.getPosition().y * 20 / 1000);
+	std::queue<int> q = Maze::show_path(x1, y1, this->target_pos.x, this->target_pos.y, maze->vp);
+	
+	if (q.size() > 0) {
+		int x2 = (q.front() % 20);// *20 + 25;
+		int y2 = floor(q.front() / 20);
+		if (x1 == x2 && y2 == y1 && q.size() > 0) {
+			q.pop();
+			x2 = (q.front() % 20);
+			y2 = floor(q.front() / 20);
+		}
+		float x1_ = x1 * 50;
+		float y1_ = y1 * 50;
+		float x2_ = x2 * 50-25;
+		float y2_ = y2 * 50-25;
+		float dx = (x2_ - x1_);
+		float dy = (y2_ - y1_);
+		float dr = sqrt(dx * dx + dy * dy);
+		float speed = 0.2;
+		if (dr > 0) {
+			float angle = -atan2(dy, dx) * 180 / 3.14159265;
+
+			rotation = 270 - angle;
+			body.setPosition(body.getPosition().x + dx * speed / dr, body.getPosition().y + dy * speed / dr);
+		}
 	}
 }
 

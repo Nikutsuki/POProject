@@ -6,6 +6,7 @@
 #include <SFML/Audio.hpp>
 #include <SFML/Network.hpp>
 #include <iostream>
+#include <chrono>
 
 #include "Maze.h"
 #include "vector_utils.h"
@@ -28,15 +29,21 @@ public:
 	sf::RectangleShape body;
 	sf::CircleShape fov;
 	sf::CircleShape ray;
+	sf::Clock change_path_clock;
 	float rotation = 0.f;
 	float health;
 	bool follow_player = false;
+	sf::Vector2i target_pos;
+
+	int target_time = 0;
 
 	Enemy();
 	~Enemy();
 
 	void Render(sf::RenderWindow& window);
 	void Update(Maze* maze);
+	void change_path(Maze* maze);
+	void explore_maze(Maze* maze);
 
 	bool is_in_fov(Vector2f target_pos);
 };

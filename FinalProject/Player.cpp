@@ -1,6 +1,7 @@
 #include "Player.h"
 #include "Maze.h"
 #include "Enemy.h"
+
 bool t = true;
 bool vis[10000];
 std::queue<int> QQ, QQ2;
@@ -564,10 +565,8 @@ void Player::render(sf::RenderWindow& window)
     sf::RectangleShape block3(sf::Vector2f(bullet_size, bullet_size));
 	block3.setTexture(&bullet_texture);
     block3.setScale(2.f, 2.f);
-    std::queue<bullet> b = bullets;
-    while (!b.empty()) {
-        block3.setPosition(sf::Vector2f(b.front().x, b.front().y));
-        b.pop();
+    for (int i = 0; i < bullets.size();i++){
+        block3.setPosition(sf::Vector2f(bullets[i].x, bullets[i].y));
         window.draw(block3);
     }
     if (showdamagefilter)

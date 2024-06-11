@@ -70,6 +70,7 @@ public:
     //std::vector<int> v[100000];
     //void showpath(int x, int y);
     std::vector<std::vector<Cell>> grid;
+    std::vector<sf::Vector2i> floors;
     int enemynumber;
     //static std::queue<int> QQ;
     void complete();
@@ -81,6 +82,7 @@ public:
     const std::vector<Room>& getRooms() const;
     int getWidth() const { return width; }
     int getHeight() const { return height; }
+    void generate_floors();
 
     static float Cell_SDF(sf::Vector2f p, sf::Vector2f t, float size);
     static std::queue<int> show_path(int x1, int y1, int x2, int y2, std::vector<int> v[10000]);

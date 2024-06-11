@@ -238,6 +238,7 @@ void Maze::generateMaze()
 	grid[19][17] = Cell::Passage;
 
 	complete();
+	generate_floors();
 }
 
 void Maze::draw(sf::RenderWindow& window, float blockSize) const
@@ -340,6 +341,21 @@ void Maze::handleInput(Player* player)
 const std::vector<Room>& Maze::getRooms() const
 {
 	return rooms;
+}
+
+void Maze::generate_floors()
+{
+	floors.clear();
+	for (int i = 0; i < 20; i++)
+	{
+		for (int j = 0; j < 20; j++)
+		{
+			if (getCell(i, j) == Cell::Passage)
+			{
+				floors.push_back(sf::Vector2i(j, i));
+			}
+		}
+	}
 }
 
 float Maze::Cell_SDF(sf::Vector2f p, sf::Vector2f t, float size)
