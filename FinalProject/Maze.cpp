@@ -240,43 +240,6 @@ void Maze::generateMaze()
 	complete();
 }
 
-/*void showpath(int x, int y) {
-	int edge = y * 20 + x;
-	int exit = 19 * 20 + 19;
-	std::queue<std::pair<int, std::queue<int> > > q;
-	std::queue<int> k;
-	q.push({ edge,k });
-	while (!q.empty()) {
-		int w = q.front().first;
-		std::queue<int> Q = q.front().second;
-		Q.push(w);
-		q.pop();
-
-		for (int i = 0;i < v[w].size();i++) {
-			if (!vis[v[w][i]] ) {
-				vis[v[w][i]] = true;
-				q.push({ v[w][i], Q });
-				if (v[w][i] == exit) {
-					while (!Q.empty()) {
-						int p = Q.front();
-						Q.pop();
-						int x = p % 20;
-						int y = p / 20;
-						QQ = Q;
-						//Player::maze.getCell(y, x).setColor(sf::Color::Yellow);
-					}
-					for (int j = 0;j < 10000;j++) {
-						vis[j] = false;
-					}
-					goto end;
-				}
-			}
-		}
-	}
-end:
-	int yr;
-}*/
-
 void Maze::draw(sf::RenderWindow& window, float blockSize) const
 {
 	for (int y = 0; y < height; ++y)
@@ -386,14 +349,15 @@ float Maze::Cell_SDF(sf::Vector2f p, sf::Vector2f t, float size)
 }
 
 void Maze::complete() {
-	key_found = false;
+	Maze::key_found = false;
 	for (int i = 0; i < 7000; i++) {
 		vp[i].clear();
 	}
 	for (int j = 1; j < 20; j++) {
 		for (int i = 1; i < 20; i++) {
 			if (this->getCell(j, i) == Cell::Key) {
-				key_position = j * 20 + i;
+				Maze::keypositionx = i;
+				Maze::keypositiony = j;
 			}
 			if (this->getCell(j, i) != Cell::Wall) {
 				if (j == 19) {

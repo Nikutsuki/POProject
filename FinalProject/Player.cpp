@@ -1,10 +1,12 @@
 #include "Player.h"
-
+#include "Maze.h"
+#include "Enemy.h"
 bool t = true;
 bool vis[10000];
 std::queue<int> QQ, QQ2;
 float aim_lenght = 12.5;
 bool left_pressed = false;
+bool key_found = false;
 bool show = false;
 float dx, dy, r, vx, vy;
 float nx = 0, ny = 0;
@@ -19,7 +21,7 @@ struct bullet
     float vy;
     float t;
 };
-std::queue<bullet> bullets;
+std::vector<bullet> bullets;
 struct Aim
 {
     float x;
@@ -29,13 +31,38 @@ struct Aim
 Aim aimm;
 float angle;
 
+void Player::damage_enemy() {
+    std::vector<Enemy*> vv = this->maze.enemy_list;
+    std::queue<int> q_;
+    int k = 0;
+    for (int i = 0; i < vv.size(); i++) {
+        sf::Vector2f pos = vv[i]->body.getPosition();
+
+        for (int j = 0; j < bullets.size(); j++) {
+            bullet b_ = bullets[j];
+            if (b_.x + bullet_size >= pos.x && b_.x <= pos.x + 25 && b_.y + bullet_size >= pos.y && b_.y <= pos.y + 25) {
+                bullets.erase(bullets.begin() + j);
+                j--;
+                std::cout << "hiy" << '\n';
+                vv[i]->health -= 11;
+                if (vv[i]->health < 0) {
+                    vv.erase(vv.begin() + i);
+                    i--;
+                }
+            }
+        }
+    }
+    this->maze.enemy_list = vv;
+}
+
+
 void add_bullet(sf::Vector2f pos1, sf::Vector2i pos2, Maze& maze) {
     if (vx != 0 && vy != 0) {
         float a = 3.14 * 1.5 - angle;
         float x = cos(a) * aim_lenght * 2 + pos1.x + 12.5;
         float y = -sin(a) * aim_lenght * 2 + pos1.y + 12.5;
         if (maze.getCell(floor(y * 20 / 1000), floor(x * 20 / 1000)) != Cell::Wall) {
-            bullets.push({ x,y,vx,vy,0 });
+            bullets.push_back({ x,y,vx,vy,0 });
         }
     }
 }
@@ -59,6 +86,7 @@ bullet move_bullet(bullet bull, Maze& maze) {
 
 void Player::showpath(int x, int y) {
     QQ = QQ2;
+    //QQ_ = QQ2_;
     int edge = y * 20 + x;
     int exit;
     if (this->maze.key_found) {
@@ -68,11 +96,15 @@ void Player::showpath(int x, int y) {
         exit = this->maze.key_position;
     }
     std::queue<std::pair<int, std::queue<int> > > q;
+   // std::vector<std::pair<int, std::vector<int> > > q_;
     std::queue<int> k;
+    //std::vector<int> k_;
+  //  q_.push_back({ edge,k_ });
     q.push({ edge,k });
     while (!q.empty()) {
         int w = q.front().first;
         std::queue<int> Q = q.front().second;
+       // std::vector<int> Q_ = q_.front().second;
         Q.push(w);
         q.pop();
         for (int i = 0; i < this->maze.vp[w].size(); i++) {
@@ -461,7 +493,12 @@ void Player::handleInput(sf::RenderWindow* window, Maze* maze, sf::Vector2i mous
         int x = floor(body.getPosition().x * 20 / 1000);
         int y = floor(body.getPosition().y * 20 / 1000);
         if (x != nx || y != ny) {
-            showpath(x, y);
+            if (maze->key_found) {
+                QQ = Maze::show_path(x, y, 19, 19, maze->vp);
+            }
+            else {
+                QQ = Maze::show_path(x, y, maze->keypositionx, maze->keypositiony, maze->vp);
+            }
         }
         nx = x;
         ny = y;
@@ -471,6 +508,7 @@ void Player::handleInput(sf::RenderWindow* window, Maze* maze, sf::Vector2i mous
         show = false;
     }
     showaim(body.getPosition(), mousePosition);
+    damage_enemy();
 
     if (sf::Mouse::isButtonPressed(sf::Mouse::Left) && !left_pressed) {
         left_pressed = true;
@@ -480,17 +518,17 @@ void Player::handleInput(sf::RenderWindow* window, Maze* maze, sf::Vector2i mous
         left_pressed = false;
     }
 
-    std::queue<bullet> bull;
-    while (!bullets.empty()) {
-        bullet b = bullets.front();
+   // std::queue<bullet> bull;
+    std::vector<bullet> bull;
+    for (int i = 0; i < bullets.size(); i++) {
+        bullet b = bullets[i];
         b = move_bullet(b, *maze);
         b.x += b.vx * bullet_speed;
         b.y += b.vy * bullet_speed;
         b.t++;
         if (b.t < 420) {
-            bull.push(b);
+            bull.push_back(b);
         }
-        bullets.pop();
     }
     bullets = bull;
 }
@@ -524,12 +562,17 @@ void Player::render(sf::RenderWindow& window)
 
     sf::RectangleShape block3(sf::Vector2f(bullet_size, bullet_size));
     block3.setFillColor(sf::Color::Magenta);
-    std::queue<bullet> b = bullets;
-    while (!b.empty()) {
+    //std::queue<bullet> b = bullets;
+   // std::vector<bullet> b = bullets;
+    for (int i = 0; i < bullets.size(); i++) {
+        block3.setPosition(sf::Vector2f(bullets[i].x, bullets[i].y));
+        window.draw(block3);
+    }
+   /* while (!b.empty()) {
         block3.setPosition(sf::Vector2f(b.front().x, b.front().y));
         b.pop();
         window.draw(block3);
-    }
+    }*/
     if (showdamagefilter)
     {
         window.draw(Filter);

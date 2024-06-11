@@ -31,6 +31,7 @@ public:
     sf::Clock damageClock;
     Player(float size, float speed, Maze& maze);
     void handleInput(sf::RenderWindow* window, Maze* maze, sf::Vector2i mousePosition);
+    void damage_enemy();
     void render(sf::RenderWindow& window);
     void showpath(int x, int y);
 };
