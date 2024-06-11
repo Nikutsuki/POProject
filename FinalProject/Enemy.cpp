@@ -33,9 +33,9 @@ sf::Vector2f Enemy::raycast(sf::Vector2f start_pos, float angle, float distance)
 	return end_pos;
 }
 
-Enemy::Enemy() : body(Vector2f(25.f, 25.f)), health(100)
+Enemy::Enemy() : body(Vector2f(25.f, 25.f)), health(100.f)
 {
-	this->texture.loadFromFile("enemy2.png");
+	this->texture.loadFromFile("enemy.png");
 	this->body.setTexture(&texture);
 	this->fov = sf::CircleShape(200.f, 3);
 
@@ -54,7 +54,7 @@ void Enemy::Render(sf::RenderWindow& window)
 
 	window.draw(body);
 	window.draw(fov);
-	window.draw(ray);
+	//window.draw(ray);
 }
 
 void Enemy::Update(Maze* maze)
@@ -111,12 +111,13 @@ void Enemy::Update(Maze* maze)
 		sf::Vector2f start_pos = body.getPosition() + sf::Vector2f(body.getSize().x / 2, body.getSize().y / 2);
 
 		body.setPosition(body.getPosition().x + -sin(deg_to_rad(rotation)) * 0.1f, body.getPosition().y + cos(deg_to_rad(rotation)) * 0.1f);
-		fov.setFillColor(sf::Color(0, 255, 0, 100)); 
+		fov.setFillColor(sf::Color(255, 0, 0, 100)); 
 	}
 
 	else
 	{
-		fov.setFillColor(sf::Color(255, 0, 0, 100));
+		fov.setFillColor(sf::Color(0, 255, 0, 100));
+
 	}
 }
 
@@ -150,13 +151,10 @@ bool Enemy::is_in_fov(Vector2f target_pos)
 
 	if (lhs > -rhs && lhs < rhs)
 	{
-		fov.setFillColor(sf::Color(0, 255, 0, 100));
 		player_pos = target_pos;
 		player_spotted = true;
 		return true;
 	}
-
-	fov.setFillColor(sf::Color(255, 0, 0, 100));
 	player_pos = target_pos;
 	player_spotted = false;
 	return false;

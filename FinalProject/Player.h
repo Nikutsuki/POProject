@@ -12,6 +12,8 @@ class Player {
 private:
     bool canMove(float x, float y, Maze* maze1);
     sf::Texture texture;
+    sf::Texture bullet_texture;
+    sf::Texture step_texture;
 public:
     int health;
     int score;
